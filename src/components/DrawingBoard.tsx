@@ -140,7 +140,7 @@ const DrawingBoard: React.FC = () => {
     }
   };
 
-  const handleMouseUp = (e: any) => {
+  const handleMouseUp = () => {
     setIsDrawing(false);
     if (selectedTool === "freehand") {
       dispatch(
