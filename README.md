@@ -1,50 +1,89 @@
-# React + TypeScript + Vite
+# Drawing Board Webapp
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight and interactive Drawing Board Web Application built using React, TypeScript, and Vite . This project focuses on providing a seamless drawing experience by leveraging the power of the Konva.js library for canvas manipulation and Redux for state managemen
 
-Currently, two official plugins are available:
+## Table of Contents
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Overview
+Features
+Why Konva.js?
+Tech Stack
+Installation
+Usage
+Future Enhancements
 
-## Expanding the ESLint configuration
+## Overview
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+This project was created to explore and implement a web-based drawing board with essential features like freehand drawing, shape creation, undo/redo functionality, and more. After researching various libraries such as PixiJS , Fabric.js , and others, I found Konva.js to be the best fit for this use case due to its simplicity, excellent documentation, and versatility.
 
-- Configure the top-level `parserOptions` property like this:
+## Features
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Freehand Drawing : Draw smoothly with your mouse or touch device.
+Shape Tools : Create basic shapes like rectangles, circles, and lines.
+Undo/Redo : Easily revert or reapply actions with undo/redo functionality.
+Tool Selection : Switch between tools (e.g., pencil, eraser, shapes) from the toolbar.
+State Management : Redux is used to manage tool selection and application state seamlessly.
+
+## Why Konva.js?
+
+After evaluating several popular canvas libraries, I chose Konva.js for the following reasons:
+
+Simplicity : The API is intuitive and easy to work with, making it ideal for rapid prototyping.
+Documentation : Comprehensive and well-structured documentation with plenty of examples.
+Versatility : Supports a wide range of use cases, from simple drawings to complex interactive graphics.
+Performance : While not focused on gaming or WebGL-heavy applications, it offers excellent performance for drawing and UI-related tasks.
+Other libraries like PixiJS and Fabric.js are great for specific use cases (e.g., games or advanced animations), but Konva.js struck the right balance for my drawing board needs.
+
+## Tech Stack
+
+Frontend Framework : React
+Language : TypeScript
+Build Tool : Vite
+Canvas Library : Konva.js
+State Management : Redux
+Package Manager : pnpm (compatible with npm/yarn)
+
+Installation
+To set up and run this project locally, follow these steps:
+
+Clone the repository :
+
+```bash
+git clone https://github.com/your-username/drawing-board.git
+cd drawing-board
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Install dependencies :
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+pnpm install
+# or
+npm install
 ```
+
+Run the development server :
+
+```bash
+pnpm run dev
+# or
+npm run dev
+```
+
+Open your browser and navigate to http://localhost:5173 (or the port specified in your terminal).
+
+## Usage
+
+Once the app is running, you can:
+
+Use the toolbar to select tools like the pen, shape, typing tools.
+Draw freely on the canvas or create shapes by clicking and dragging.
+Use the undo/redo buttons to revert or reapply actions.
+Experiment with different tools and features to create your masterpiece!
+
+## Future Enhancements
+
+This project is still a work in progress, and I plan to add the following features in the near future:
+
+Multiple Layers : Allow users to work with multiple layers for better organization.
+Advanced Tools : Introduce additional tools like gradients.
+Bug Fixes : Address minor bugs and improve overall stability.

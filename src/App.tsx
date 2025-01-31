@@ -1,14 +1,13 @@
-import { useState } from "react";
-import "./App.css";
+import DrawingBoard from "./components/DrawingBoard";
+import Toolbar from "./components/Toolbar";
 
-function App() {
-  const [count, setCount] = useState(0);
-
+const App = () => {
   return (
-    <>
-      <p>Hello World</p>
-    </>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+      <Toolbar />
+      <DrawingBoard />
+    </div>
   );
-}
+};
 
 export default App;
