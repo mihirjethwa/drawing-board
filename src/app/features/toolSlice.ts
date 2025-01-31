@@ -36,9 +36,9 @@ type Shape =
       type: "text";
       x: number;
       y: number;
-      text: string; // The text content
-      fontSize?: number; // Font size
-      fill?: string; // Text color
+      text: string;
+      fontSize?: number;
+      fill?: string;
       scaleX?: number;
       scaleY?: number;
     };
@@ -51,6 +51,7 @@ interface ToolState {
   history: Shape[][];
   historyIndex: number;
   selectedShapeId: string | null;
+  theme: string;
 }
 
 const initialState: ToolState = {
@@ -61,6 +62,7 @@ const initialState: ToolState = {
   history: [[]],
   historyIndex: 0,
   selectedShapeId: null,
+  theme: localStorage.getItem("theme") || "light",
 };
 
 const toolSlice = createSlice({
@@ -113,8 +115,12 @@ const toolSlice = createSlice({
       state.history = [...state.history.slice(0, state.historyIndex + 1), updatedShapes];
       state.historyIndex++;
     },
+    toggleTheme: (state) => {
+      state.theme = state.theme === "light" ? "dark" : "light";
+      localStorage.setItem("theme", state.theme);
+    },
   },
 });
 
-export const { setTool, setStrokeColor, setStrokeWidth, addShape, updateShape, undo, redo, selectShape, deleteShape } = toolSlice.actions;
+export const { setTool, setStrokeColor, setStrokeWidth, addShape, updateShape, undo, redo, selectShape, deleteShape, toggleTheme } = toolSlice.actions;
 export default toolSlice.reducer;

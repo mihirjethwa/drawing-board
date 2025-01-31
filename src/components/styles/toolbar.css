@@ -1,9 +1,15 @@
 .draw-btn-container {
   padding: 10px;
   background: #f0f0f0;
-  border-bottom: 1px solid #ccc;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
   gap: 10px;
+}
+.toolbar-buttons {
+  display: flex;
+  gap: 8px;
 }
 .draw-button {
   padding: 5px;
@@ -14,4 +20,44 @@
   justify-content: center;
   width: 40px;
   height: 40px;
+}
+
+.theme-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.theme-toggle {
+  width: 50px;
+  height: 24px;
+  background-color: #756767;
+  border-radius: 12px;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-circle {
+  width: 20px;
+  height: 20px;
+  background-color: rgb(224, 220, 220);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle.dark-mode {
+  background-color: #1e1e1e;
+}
+
+.theme-toggle.dark-mode .toggle-circle {
+  transform: translateX(26px);
+}
+
+.theme-toggle.light-mode {
+  background-color: #928383;
 }

@@ -6,13 +6,13 @@ import { addShape, selectShape, updateShape } from "../app/features/toolSlice";
 
 const DrawingBoard: React.FC = () => {
   const dispatch = useDispatch();
-  const { shapes, selectedTool, strokeColor, strokeWidth, selectedShapeId } = useSelector((state: RootState) => state.tool);
+  const { shapes, selectedTool, strokeColor, strokeWidth, selectedShapeId, theme } = useSelector((state: RootState) => state.tool);
   const [currentLine, setCurrentLine] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isHoveringShape, setIsHoveringShape] = useState(false);
   const transformerRef = useRef<any>(null);
   const stageRef = useRef<any>(null);
-
+  const stageBackgroundColor = theme === "light" ? "#ffffff" : "#1e1e1e";
   const handleShapeClick = (id: string) => {
     dispatch(selectShape(id));
     if (transformerRef.current && selectedShapeId) {
@@ -165,6 +165,7 @@ const DrawingBoard: React.FC = () => {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       style={{
+        backgroundColor: stageBackgroundColor,
         cursor: isDrawing ? "crosshair" : isHoveringShape ? "move" : "default",
       }}
     >
