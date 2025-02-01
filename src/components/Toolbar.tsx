@@ -1,6 +1,5 @@
 import React from "react";
 import "./styles/toolbar.css";
-
 import { useDispatch, useSelector } from "react-redux";
 import { setTool, setStrokeColor, setStrokeWidth, undo, redo, deleteShape, toggleTheme } from "../app/features/toolSlice";
 import { RootState } from "../app/store";
@@ -15,19 +14,75 @@ import { MdDelete } from "react-icons/md";
 import { FaDownload } from "react-icons/fa6";
 import { FaMoon } from "react-icons/fa6";
 import { FaSun } from "react-icons/fa6";
+import Konva from "konva";
 
 const Toolbar: React.FC = () => {
   const dispatch = useDispatch();
-  const { selectedTool, strokeColor, strokeWidth, selectedShapeId, historyIndex, history, theme } = useSelector((state: RootState) => state.tool);
+  const { selectedTool, strokeColor, strokeWidth, selectedShapeId, theme, layers } = useSelector((state: RootState) => state.tool);
   const handleDownload = () => {
-    const stage = document.querySelector("canvas");
-    if (stage) {
-      const dataURL = stage.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = dataURL;
-      link.download = "drawing.png";
-      link.click();
+    if (layers.filter((layer) => layer.isVisible).length === 0) {
+      alert("No visible layers to export.");
+      return;
     }
+    const stage = new Konva.Stage({
+      width: window.innerWidth,
+      height: window.innerHeight - 50,
+      container: document.createElement("div"),
+    });
+
+    layers.forEach((layer) => {
+      if (layer.isVisible) {
+        const konvaLayer = new Konva.Layer();
+
+        layer.shapes.forEach((shape) => {
+          if (shape.type === "rectangle") {
+            const rect = new Konva.Rect({
+              x: shape.x,
+              y: shape.y,
+              width: shape.width || 0,
+              height: shape.height || 0,
+              fill: shape.fill,
+            });
+            konvaLayer.add(rect);
+          } else if (shape.type === "circle") {
+            const circle = new Konva.Circle({
+              x: shape.x,
+              y: shape.y,
+              radius: shape.radius || 0,
+              fill: shape.fill,
+            });
+            konvaLayer.add(circle);
+          } else if (shape.type === "freehand") {
+            const line = new Konva.Line({
+              points: shape.points || [],
+              stroke: shape.stroke || "black",
+              strokeWidth: shape.strokeWidth || 5,
+              tension: 0.5,
+              lineCap: "round",
+              lineJoin: "round",
+            });
+            konvaLayer.add(line);
+          } else if (shape.type === "text") {
+            const text = new Konva.Text({
+              x: shape.x,
+              y: shape.y,
+              text: shape.text || "",
+              fontSize: shape.fontSize || 20,
+              fill: shape.fill || "black",
+            });
+            konvaLayer.add(text);
+          }
+        });
+
+        stage.add(konvaLayer);
+      }
+    });
+    const dataURL = stage.toDataURL({ pixelRatio: 2 });
+    const link = document.createElement("a");
+    link.href = dataURL;
+    link.download = "drawing.png";
+    link.click();
+    stage.destroy();
   };
   return (
     <div className='draw-btn-container'>
@@ -107,12 +162,12 @@ const Toolbar: React.FC = () => {
           />
         </div>
 
-        <button onClick={() => dispatch(undo())} className='draw-button' disabled={historyIndex == 0}>
+        <button onClick={() => dispatch(undo())} className='draw-button'>
           <span>
             <LuUndo2 />
           </span>
         </button>
-        <button onClick={() => dispatch(redo())} className='draw-button' disabled={historyIndex + 1 == history.length}>
+        <button onClick={() => dispatch(redo())} className='draw-button'>
           <span>
             <LuRedo2 />
           </span>

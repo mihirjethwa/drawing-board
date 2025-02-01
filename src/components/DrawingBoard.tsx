@@ -6,14 +6,23 @@ import { addShape, selectShape, updateShape } from "../app/features/toolSlice";
 
 const DrawingBoard: React.FC = () => {
   const dispatch = useDispatch();
-  const { shapes, selectedTool, strokeColor, strokeWidth, selectedShapeId, theme } = useSelector((state: RootState) => state.tool);
+  const { selectedTool, strokeColor, strokeWidth, selectedShapeId, theme, layers, activeLayerId } = useSelector((state: RootState) => state.tool);
   const [currentLine, setCurrentLine] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isHoveringShape, setIsHoveringShape] = useState(false);
+  const activeLayer = layers.find((layer) => layer.id === activeLayerId);
   const transformerRef = useRef<any>(null);
   const stageRef = useRef<any>(null);
   const stageBackgroundColor = theme === "light" ? "#ffffff" : "#1e1e1e";
+
   const handleShapeClick = (id: string) => {
+    const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+    if (!activeLayer) return;
+    const shapeInActiveLayer = activeLayer.shapes.some((shape) => shape.id === id);
+    if (!shapeInActiveLayer) {
+      alert("You can only interact with shapes in the active layer.");
+      return;
+    }
     dispatch(selectShape(id));
     if (transformerRef.current && selectedShapeId) {
       const stage = transformerRef.current.getLayer()?.getStage();
@@ -52,13 +61,41 @@ const DrawingBoard: React.FC = () => {
   const handleMouseDown = (e: any) => {
     const stage = e.target.getStage();
     const { x, y } = stage.getPointerPosition();
-    if (e.target === e.target.getStage()) {
-      dispatch(selectShape(null));
-    }
-    const clickedOnShape = stage.getIntersection({ x, y });
-    if (clickedOnShape) {
+    const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+    if (!activeLayer) return;
+
+    const clickedOnActiveLayerShape = activeLayer.shapes.some((shape) => {
+      if (shape.type === "rectangle") {
+        return x >= shape.x && x <= shape.x + (shape.width || 0) && y >= shape.y && y <= shape.y + (shape.height || 0);
+      } else if (shape.type === "circle") {
+        const distance = Math.sqrt(Math.pow(x - shape.x, 2) + Math.pow(y - shape.y, 2));
+        return distance <= (shape.radius || 0);
+      }
+      return false;
+    });
+
+    if (clickedOnActiveLayerShape) {
+      const clickedShape = activeLayer.shapes.find((shape) => {
+        if (shape.type === "rectangle") {
+          return x >= shape.x && x <= shape.x + (shape.width || 0) && y >= shape.y && y <= shape.y + (shape.height || 0);
+        } else if (shape.type === "circle") {
+          const distance = Math.sqrt(Math.pow(x - shape.x, 2) + Math.pow(y - shape.y, 2));
+          return distance <= (shape.radius || 0);
+        }
+        return false;
+      });
+      if (clickedShape) {
+        handleShapeClick(clickedShape.id);
+      }
       return;
     }
+    // if (e.target === e.target.getStage()) {
+    //   dispatch(selectShape(null));
+    // }
+    // const clickedOnShape = stage.getIntersection({ x, y });
+    // if (clickedOnShape) {
+    //   return;
+    // }
 
     if (selectedTool === "text") {
       const textContent = prompt("Enter text:");
@@ -107,7 +144,7 @@ const DrawingBoard: React.FC = () => {
   };
 
   const handleMouseMove = (e: any) => {
-    if (!isDrawing) return;
+    if (!activeLayer || !isDrawing) return;
 
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
@@ -115,32 +152,39 @@ const DrawingBoard: React.FC = () => {
     if (selectedTool === "freehand") {
       setCurrentLine((prevLine) => [...prevLine, point.x, point.y]);
     } else if (selectedTool === "rectangle") {
-      const lastShape = shapes[shapes.length - 1];
-      if (lastShape.type === "rectangle") {
-        const newWidth = point.x - lastShape.x;
-        const newHeight = point.y - lastShape.y;
-        dispatch(
-          updateShape({
-            id: lastShape.id,
-            updates: { width: newWidth, height: newHeight },
-          })
-        );
+      const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+      if (activeLayer) {
+        const lastShape = activeLayer.shapes[activeLayer.shapes.length - 1];
+        if (lastShape.type === "rectangle") {
+          const newWidth = point.x - lastShape.x;
+          const newHeight = point.y - lastShape.y;
+          dispatch(
+            updateShape({
+              id: lastShape.id,
+              updates: { width: newWidth, height: newHeight },
+            })
+          );
+        }
       }
     } else if (selectedTool === "circle") {
-      const lastShape = shapes[shapes.length - 1];
-      if (lastShape.type === "circle") {
-        const newRadius = Math.sqrt(Math.pow(point.x - lastShape.x, 2) + Math.pow(point.y - lastShape?.y, 2));
-        dispatch(
-          updateShape({
-            id: lastShape.id,
-            updates: { radius: newRadius },
-          })
-        );
+      const activeLayer = layers.find((layer) => layer.id === activeLayerId);
+      if (activeLayer) {
+        const lastShape = activeLayer.shapes[activeLayer.shapes.length - 1];
+        if (lastShape.type === "circle") {
+          const newRadius = Math.sqrt(Math.pow(point.x - lastShape.x, 2) + Math.pow(point.y - lastShape?.y, 2));
+          dispatch(
+            updateShape({
+              id: lastShape.id,
+              updates: { radius: newRadius },
+            })
+          );
+        }
       }
     }
   };
 
   const handleMouseUp = () => {
+    if (!activeLayer || !isDrawing) return;
     setIsDrawing(false);
     if (selectedTool === "freehand") {
       dispatch(
@@ -169,123 +213,161 @@ const DrawingBoard: React.FC = () => {
         cursor: isDrawing ? "crosshair" : isHoveringShape ? "move" : "default",
       }}
     >
-      <Layer>
-        {shapes.map((shape) =>
-          shape.type === "rectangle" ? (
-            <Rect
-              key={shape.id}
-              id={shape.id}
-              x={shape.x}
-              y={shape.y}
-              width={shape.width || 0}
-              height={shape.height || 0}
-              fill={shape.fill}
-              draggable
-              onDragEnd={(e) => {
-                const newX = e.target.x();
-                const newY = e.target.y();
-                dispatch(
-                  updateShape({
-                    id: shape.id,
-                    updates: { x: newX, y: newY },
-                  })
-                );
+      {layers.map((layer) => (
+        <Layer key={layer.id} visible={layer.isVisible}>
+          {layer.shapes.map((shape) =>
+            shape.type === "rectangle" ? (
+              <Rect
+                key={shape.id}
+                id={shape.id}
+                x={shape.x}
+                y={shape.y}
+                width={shape.width || 0}
+                height={shape.height || 0}
+                fill={shape.fill}
+                draggable={layer.id === activeLayerId}
+                onDragEnd={(e) => {
+                  const newX = e.target.x();
+                  const newY = e.target.y();
+                  dispatch(
+                    updateShape({
+                      id: shape.id,
+                      updates: { x: newX, y: newY },
+                    })
+                  );
+                }}
+                onClick={() => handleShapeClick(shape.id)}
+                onTransformEnd={() => handleTransformEnd(shape.id)}
+                onMouseEnter={(e) => {
+                  const stage = e.target.getStage();
+                  if (stage) {
+                    const container = stage.container();
+                    container.style.cursor = layer.id === activeLayerId ? "move" : "default";
+                  }
+                }}
+                onMouseleave={(e: any) => {
+                  const stage = e.target.getStage();
+                  if (stage) {
+                    const container = stage.container();
+                    container.style.cursor = "default";
+                  }
+                }}
+              />
+            ) : shape.type === "circle" ? (
+              <Circle
+                key={shape.id}
+                id={shape.id}
+                x={shape.x}
+                y={shape.y}
+                radius={shape.radius || 0}
+                fill={shape.fill}
+                draggable={layer.id === activeLayerId}
+                onDragEnd={(e) => {
+                  const newX = e.target.x();
+                  const newY = e.target.y();
+                  dispatch(
+                    updateShape({
+                      id: shape.id,
+                      updates: { x: newX, y: newY },
+                    })
+                  );
+                }}
+                onClick={() => handleShapeClick(shape.id)}
+                onTransformEnd={() => handleTransformEnd(shape.id)}
+                onMouseEnter={(e) => {
+                  const stage = e.target.getStage();
+                  if (stage) {
+                    const container = stage.container();
+                    container.style.cursor = layer.id === activeLayerId ? "move" : "default";
+                  }
+                }}
+                onMouseleave={(e: any) => {
+                  const stage = e.target.getStage();
+                  if (stage) {
+                    const container = stage.container();
+                    container.style.cursor = "default";
+                  }
+                }}
+              />
+            ) : shape.type === "freehand" ? (
+              <Line
+                key={shape.id}
+                id={shape.id}
+                points={shape.points || []}
+                stroke={shape.stroke || "black"}
+                strokeWidth={shape.strokeWidth || 5}
+                tension={0.5}
+                lineCap='round'
+                lineJoin='round'
+                onClick={() => handleShapeClick(shape.id)}
+                onTransformEnd={() => handleTransformEnd(shape.id)}
+                onMouseEnter={() => setIsHoveringShape(true)}
+                onMouseLeave={() => setIsHoveringShape(false)}
+                draggable={layer.id === activeLayerId}
+                onDragEnd={(e) => {
+                  const newX = e.target.x();
+                  const newY = e.target.y();
+                  dispatch(
+                    updateShape({
+                      id: shape.id,
+                      updates: { x: newX, y: newY },
+                    })
+                  );
+                }}
+              />
+            ) : (
+              <Text
+                key={shape.id}
+                id={shape.id}
+                x={shape.x}
+                y={shape.y}
+                text={shape.text || ""}
+                fontSize={shape.fontSize || 20}
+                fill={shape.fill || "black"}
+                draggable={layer.id === activeLayerId}
+                onDragEnd={(e) => {
+                  const newX = e.target.x();
+                  const newY = e.target.y();
+                  dispatch(
+                    updateShape({
+                      id: shape.id,
+                      updates: { x: newX, y: newY },
+                    })
+                  );
+                }}
+                onClick={() => handleShapeClick(shape.id)}
+                onTransformEnd={() => handleTransformEnd(shape.id)}
+                onMouseEnter={(e) => {
+                  const stage = e.target.getStage();
+                  if (stage) {
+                    const container = stage.container();
+                    container.style.cursor = layer.id === activeLayerId ? "move" : "default";
+                  }
+                }}
+                onMouseleave={(e: any) => {
+                  const stage = e.target.getStage();
+                  if (stage) {
+                    const container = stage.container();
+                    container.style.cursor = "default";
+                  }
+                }}
+              />
+            )
+          )}
+          {selectedTool === "freehand" && isDrawing && <Line points={currentLine} stroke={strokeColor} strokeWidth={strokeWidth} tension={0.5} lineCap='round' lineJoin='round' />}
+          {selectedShapeId && (
+            <Transformer
+              ref={transformerRef}
+              boundBoxFunc={(oldBox, newBox) => {
+                if (newBox.width < 5 || newBox.height < 5) {
+                  return oldBox;
+                }
+                return newBox;
               }}
-              onClick={() => handleShapeClick(shape.id)}
-              onTransformEnd={() => handleTransformEnd(shape.id)}
-              onMouseEnter={() => setIsHoveringShape(true)}
-              onMouseLeave={() => setIsHoveringShape(false)}
             />
-          ) : shape.type === "circle" ? (
-            <Circle
-              key={shape.id}
-              id={shape.id}
-              x={shape.x}
-              y={shape.y}
-              radius={shape.radius || 0}
-              fill={shape.fill}
-              draggable
-              onDragEnd={(e) => {
-                const newX = e.target.x();
-                const newY = e.target.y();
-                dispatch(
-                  updateShape({
-                    id: shape.id,
-                    updates: { x: newX, y: newY },
-                  })
-                );
-              }}
-              onClick={() => handleShapeClick(shape.id)}
-              onTransformEnd={() => handleTransformEnd(shape.id)}
-              onMouseEnter={() => setIsHoveringShape(true)}
-              onMouseLeave={() => setIsHoveringShape(false)}
-            />
-          ) : shape.type === "freehand" ? (
-            <Line
-              key={shape.id}
-              id={shape.id}
-              points={shape.points || []}
-              stroke={shape.stroke || "black"}
-              strokeWidth={shape.strokeWidth || 5}
-              tension={0.5}
-              lineCap='round'
-              lineJoin='round'
-              onClick={() => handleShapeClick(shape.id)}
-              onTransformEnd={() => handleTransformEnd(shape.id)}
-              onMouseEnter={() => setIsHoveringShape(true)}
-              onMouseLeave={() => setIsHoveringShape(false)}
-              draggable
-              onDragEnd={(e) => {
-                const newX = e.target.x();
-                const newY = e.target.y();
-                dispatch(
-                  updateShape({
-                    id: shape.id,
-                    updates: { x: newX, y: newY },
-                  })
-                );
-              }}
-            />
-          ) : (
-            <Text
-              key={shape.id}
-              id={shape.id}
-              x={shape.x}
-              y={shape.y}
-              text={shape.text || ""}
-              fontSize={shape.fontSize || 20}
-              fill={shape.fill || "black"}
-              draggable
-              onDragEnd={(e) => {
-                const newX = e.target.x();
-                const newY = e.target.y();
-                dispatch(
-                  updateShape({
-                    id: shape.id,
-                    updates: { x: newX, y: newY },
-                  })
-                );
-              }}
-              onClick={() => handleShapeClick(shape.id)}
-              onTransformEnd={() => handleTransformEnd(shape.id)}
-              onMouseEnter={() => setIsHoveringShape(true)}
-              onMouseLeave={() => setIsHoveringShape(false)}
-            />
-          )
-        )}
-        {selectedTool === "freehand" && isDrawing && <Line points={currentLine} stroke={strokeColor} strokeWidth={strokeWidth} tension={0.5} lineCap='round' lineJoin='round' />}
-        {selectedShapeId && (
-          <Transformer
-            ref={transformerRef}
-            boundBoxFunc={(oldBox, newBox) => {
-              if (newBox.width < 5 || newBox.height < 5) {
-                return oldBox;
-              }
-              return newBox;
-            }}
-          />
-        )}
-      </Layer>
+          )}
+        </Layer>
+      ))}
     </Stage>
   );
 };

@@ -43,26 +43,41 @@ type Shape =
       scaleY?: number;
     };
 
+interface Layer {
+  id: string;
+  name: string;
+  isVisible: boolean;
+  shapes: Shape[];
+  history: Shape[][];
+  historyIndex: number;
+}
 interface ToolState {
   selectedTool: "rectangle" | "circle" | "freehand" | "text";
   strokeColor?: string;
   strokeWidth?: number;
-  shapes: Shape[];
-  history: Shape[][];
-  historyIndex: number;
   selectedShapeId: string | null;
   theme: string;
+  layers: Layer[];
+  activeLayerId: string | null;
 }
 
 const initialState: ToolState = {
   selectedTool: "rectangle",
   strokeColor: "#6602f2",
   strokeWidth: 5,
-  shapes: [],
-  history: [[]],
-  historyIndex: 0,
   selectedShapeId: null,
   theme: localStorage.getItem("theme") || "light",
+  layers: [
+    {
+      id: "layer-1",
+      name: "Layer 1",
+      isVisible: true,
+      shapes: [],
+      history: [[]],
+      historyIndex: 0,
+    },
+  ],
+  activeLayerId: "layer-1",
 };
 
 const toolSlice = createSlice({
@@ -79,48 +94,91 @@ const toolSlice = createSlice({
       state.strokeWidth = action.payload;
     },
     addShape: (state, action) => {
-      const newShapes = [...state.shapes, action.payload];
-      state.shapes = newShapes;
-      state.history = [...state.history.slice(0, state.historyIndex + 1), newShapes];
-      state.historyIndex++;
+      const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId);
+      if (activeLayer) {
+        const newShapes = [...activeLayer.shapes, action.payload];
+        activeLayer.shapes = newShapes;
+
+        activeLayer.history = [...activeLayer.history.slice(0, activeLayer.historyIndex + 1), newShapes];
+        activeLayer.historyIndex++;
+      }
     },
     updateShape: (state, action) => {
-      const { id, updates } = action.payload;
-      const updatedShapes = state.shapes.map((shape) => (shape.id === id ? { ...shape, ...updates } : shape));
-      state.shapes = updatedShapes;
+      const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId);
+      if (activeLayer) {
+        const { id, updates } = action.payload;
+        const updatedShapes = activeLayer.shapes.map((shape) => (shape.id === id ? { ...shape, ...updates } : shape));
+        activeLayer.shapes = updatedShapes;
 
-      state.history = [...state.history.slice(0, state.historyIndex + 1), updatedShapes];
-      state.historyIndex++;
+        activeLayer.history = [...activeLayer.history.slice(0, activeLayer.historyIndex + 1), updatedShapes];
+        activeLayer.historyIndex++;
+      }
     },
     undo: (state) => {
-      if (state.historyIndex > 0) {
-        state.historyIndex--;
-        state.shapes = state.history[state.historyIndex];
+      const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId);
+      if (activeLayer && activeLayer.historyIndex > 0) {
+        activeLayer.historyIndex--;
+        activeLayer.shapes = activeLayer.history[activeLayer.historyIndex];
       }
     },
     redo: (state) => {
-      if (state.historyIndex < state.history.length - 1) {
-        state.historyIndex++;
-        state.shapes = state.history[state.historyIndex];
+      const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId);
+      if (activeLayer && activeLayer.historyIndex < activeLayer.history.length - 1) {
+        activeLayer.historyIndex++;
+        activeLayer.shapes = activeLayer.history[activeLayer.historyIndex];
       }
     },
     selectShape: (state, action) => {
       state.selectedShapeId = action.payload;
     },
     deleteShape: (state, action) => {
-      const { id } = action.payload;
-      const updatedShapes = state.shapes.filter((shape) => shape.id !== id);
-      state.shapes = updatedShapes;
+      const activeLayer = state.layers.find((layer) => layer.id === state.activeLayerId);
+      if (activeLayer) {
+        const { id } = action.payload;
+        const updatedShapes = activeLayer.shapes.filter((shape) => shape.id !== id);
+        activeLayer.shapes = updatedShapes;
 
-      state.history = [...state.history.slice(0, state.historyIndex + 1), updatedShapes];
-      state.historyIndex++;
+        activeLayer.history = [...activeLayer.history.slice(0, activeLayer.historyIndex + 1), updatedShapes];
+        activeLayer.historyIndex++;
+      }
     },
     toggleTheme: (state) => {
       state.theme = state.theme === "light" ? "dark" : "light";
       localStorage.setItem("theme", state.theme);
     },
+    addLayer: (state) => {
+      const newLayer = {
+        id: `layer-${Date.now()}`,
+        name: `Layer ${state.layers.length + 1}`,
+        isVisible: true,
+        shapes: [],
+        history: [[]],
+        historyIndex: 0,
+      };
+      state.layers.push(newLayer);
+      state.activeLayerId = newLayer.id;
+    },
+    deleteLayer: (state, action) => {
+      const layerId = action.payload;
+      if (state.layers.length > 1) {
+        state.layers = state.layers.filter((layer) => layer.id !== layerId);
+        state.activeLayerId = state.layers[0].id;
+      }
+    },
+
+    toggleLayerVisibility: (state, action) => {
+      const layerId = action.payload;
+      const layer = state.layers.find((layer) => layer.id === layerId);
+      if (layer) {
+        layer.isVisible = !layer.isVisible;
+      }
+    },
+
+    setActiveLayer: (state, action) => {
+      state.activeLayerId = action.payload;
+    },
   },
 });
 
-export const { setTool, setStrokeColor, setStrokeWidth, addShape, updateShape, undo, redo, selectShape, deleteShape, toggleTheme } = toolSlice.actions;
+export const { setTool, setStrokeColor, setStrokeWidth, addShape, updateShape, undo, redo, selectShape, deleteShape, toggleTheme, addLayer, deleteLayer, toggleLayerVisibility, setActiveLayer } = toolSlice.actions;
 export default toolSlice.reducer;

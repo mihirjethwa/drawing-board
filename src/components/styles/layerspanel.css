@@ -1,0 +1,66 @@
+.layers-panel {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 250px;
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 1000;
+  color: #141414;
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.layers-panel p {
+  font-size: 16px;
+  text-align: center;
+}
+
+.layers-panel ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.layers-panel li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.layers-panel li:last-child {
+  border-bottom: none;
+}
+
+.layers-panel li.active-layer {
+  background-color: #f0f8ffae;
+}
+.layer-eye-txt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.layer-eye-txt p {
+  font-size: 14px;
+}
+
+.layers-panel button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+.eye-button {
+  margin-right: 4px;
+  padding-top: 6px;
+}
+.delete-button:hover {
+  color: #de3d19;
+}
