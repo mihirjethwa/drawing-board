@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Stage, Layer, Rect, Circle, Line, Text, Transformer } from "react-konva";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../app/store";
-import { addShape, selectShape, updateShape, setTool } from "../app/features/toolSlice";
+import { addShape, selectShape, updateShape } from "../app/features/toolSlice";
 
 const DrawingBoard: React.FC = () => {
   const dispatch = useDispatch();
