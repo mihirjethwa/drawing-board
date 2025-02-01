@@ -2,7 +2,7 @@
 import "./styles/layerspanel.css";
 import { useDispatch, useSelector } from "react-redux";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import { BiLayer, BiLayerPlus } from "react-icons/bi";
+import { BiLayerPlus } from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
 import { addLayer, deleteLayer, toggleLayerVisibility, setActiveLayer } from "../app/features/toolSlice";
 import { RootState } from "../app/store";
@@ -13,15 +13,17 @@ const LayersPanel = () => {
 
   return (
     <div className='layers-panel'>
-      <p>
-        Layers{" "}
-        <span>
-          <BiLayer />
-        </span>
-      </p>
-      <button onClick={() => dispatch(addLayer())}>
-        <BiLayerPlus size={25} />
-      </button>
+      <div className='layer-panel-header'>
+        <div>
+          <p style={{ marginLeft: "2px" }}>Layers</p>
+        </div>
+        <div>
+          <button onClick={() => dispatch(addLayer())}>
+            <BiLayerPlus size={25} />
+          </button>
+        </div>
+      </div>
+
       <ul>
         {[...layers].reverse().map((layer) => (
           <li key={layer.id} className={layer.id === activeLayerId ? "active-layer" : ""} onClick={() => dispatch(setActiveLayer(layer.id))}>

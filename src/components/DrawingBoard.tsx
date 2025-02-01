@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Stage, Layer, Rect, Circle, Line, Text, Transformer } from "react-konva";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../app/store";
-import { addShape, selectShape, updateShape } from "../app/features/toolSlice";
+import { addShape, selectShape, updateShape, setTool } from "../app/features/toolSlice";
 
 const DrawingBoard: React.FC = () => {
   const dispatch = useDispatch();
@@ -70,6 +70,21 @@ const DrawingBoard: React.FC = () => {
       } else if (shape.type === "circle") {
         const distance = Math.sqrt(Math.pow(x - shape.x, 2) + Math.pow(y - shape.y, 2));
         return distance <= (shape.radius || 0);
+      } else if (shape.type === "text") {
+        const fontSize = shape.fontSize || 20;
+        const textWidth = shape.text?.length * (fontSize / 2) || 0;
+        const textHeight = fontSize;
+        return x >= shape.x && x <= shape.x + textWidth && y >= shape.y && y <= shape.y + textHeight;
+      } else if (shape.type === "freehand") {
+        const maxDistance = 10;
+        return shape.points.some((pointX, index) => {
+          if (index % 2 === 0) {
+            const pointY = shape.points[index + 1];
+            const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+            return distance <= maxDistance;
+          }
+          return false;
+        });
       }
       return false;
     });
@@ -81,6 +96,21 @@ const DrawingBoard: React.FC = () => {
         } else if (shape.type === "circle") {
           const distance = Math.sqrt(Math.pow(x - shape.x, 2) + Math.pow(y - shape.y, 2));
           return distance <= (shape.radius || 0);
+        } else if (shape.type === "text") {
+          const fontSize = shape.fontSize || 20;
+          const textWidth = shape.text?.length * (fontSize / 2) || 0;
+          const textHeight = fontSize;
+          return x >= shape.x && x <= shape.x + textWidth && y >= shape.y && y <= shape.y + textHeight;
+        } else if (shape.type === "freehand") {
+          const maxDistance = 10;
+          return shape.points.some((pointX, index) => {
+            if (index % 2 === 0) {
+              const pointY = shape.points[index + 1];
+              const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+              return distance <= maxDistance;
+            }
+            return false;
+          });
         }
         return false;
       });
@@ -89,13 +119,12 @@ const DrawingBoard: React.FC = () => {
       }
       return;
     }
-    // if (e.target === e.target.getStage()) {
-    //   dispatch(selectShape(null));
-    // }
-    // const clickedOnShape = stage.getIntersection({ x, y });
-    // if (clickedOnShape) {
-    //   return;
-    // }
+
+    dispatch(selectShape(null));
+    if (transformerRef.current) {
+      transformerRef.current.nodes([]);
+      transformerRef.current.getLayer()?.batchDraw();
+    }
 
     if (selectedTool === "text") {
       const textContent = prompt("Enter text:");

@@ -7,15 +7,17 @@
   backdrop-filter: blur(10px);
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 10px;
+  padding: 16px;
   z-index: 1000;
   color: #141414;
   transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
 }
 
-.layers-panel p {
-  font-size: 16px;
-  text-align: center;
+.layer-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .layers-panel ul {
@@ -40,7 +42,7 @@
 }
 
 .layers-panel li.active-layer {
-  background-color: #f0f8ffae;
+  background-color: #cbe0f2a1;
 }
 .layer-eye-txt {
   display: flex;
