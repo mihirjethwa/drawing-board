@@ -20,30 +20,30 @@ This project was created to explore and implement a web-based drawing board with
 
 ## Features
 
-Freehand Drawing : Draw smoothly with your mouse or touch device.
-Shape Tools : Create basic shapes like rectangles, circles, and lines.
-Undo/Redo : Easily revert or reapply actions with undo/redo functionality.
-Tool Selection : Switch between tools (e.g., pencil, eraser, shapes) from the toolbar.
-State Management : Redux is used to manage tool selection and application state seamlessly.
+Freehand Drawing : Draw smoothly with your mouse or touch device.  
+Shape Tools : Create basic shapes like rectangles, circles, and lines.  
+Undo/Redo : Easily revert or reapply actions with undo/redo functionality.  
+Tool Selection : Switch between tools (e.g., pencil, eraser, shapes) from the toolbar.  
+State Management : Redux is used to manage tool selection and application state seamlessly.  
 
 ## Why Konva.js?
 
 After evaluating several popular canvas libraries, I chose Konva.js for the following reasons:
 
-Simplicity : The API is intuitive and easy to work with, making it ideal for rapid prototyping.
-Documentation : Comprehensive and well-structured documentation with plenty of examples.
-Versatility : Supports a wide range of use cases, from simple drawings to complex interactive graphics.
-Performance : While not focused on gaming or WebGL-heavy applications, it offers excellent performance for drawing and UI-related tasks.
-Other libraries like PixiJS and Fabric.js are great for specific use cases (e.g., games or advanced animations), but Konva.js struck the right balance for my drawing board needs.
+Simplicity : The API is intuitive and easy to work with, making it ideal for rapid prototyping.  
+Documentation : Comprehensive and well-structured documentation with plenty of examples.  
+Versatility : Supports a wide range of use cases, from simple drawings to complex interactive graphics.  
+Performance : While not focused on gaming or WebGL-heavy applications, it offers excellent performance for drawing and UI-related tasks.  
+Other libraries like PixiJS and Fabric.js are great for specific use cases (e.g., games or advanced animations), but Konva.js struck the right balance for my drawing board needs.  
 
 ## Tech Stack
 
-Frontend Framework : React
-Language : TypeScript
-Build Tool : Vite
-Canvas Library : Konva.js
-State Management : Redux
-Package Manager : pnpm (compatible with npm/yarn)
+Frontend Framework : React  
+Language : TypeScript  
+Build Tool : Vite  
+Canvas Library : Konva.js  
+State Management : Redux  
+Package Manager : pnpm (compatible with npm/yarn)  
 
 Installation
 To set up and run this project locally, follow these steps:
@@ -86,6 +86,6 @@ Experiment with different tools and features to create your masterpiece!
 
 This project is still a work in progress, and I plan to add the following features in the near future:
 
-Multiple Layers : Allow users to work with multiple layers for better organization.
-Advanced Tools : Introduce additional tools like gradients.
-Bug Fixes : Address minor bugs and improve overall stability.
+Multiple Layers : Allow users to work with multiple layers for better organization.  
+Advanced Tools : Introduce additional tools like gradients.  
+Bug Fixes : Address minor bugs and improve overall stability.  
